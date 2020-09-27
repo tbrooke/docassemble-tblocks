@@ -1,37 +1,36 @@
 from docassemble.base.core import DAList, DAEmpty
 from docassemble.base.util import Individual
 
-__all__ = ['HouseholdList']
+__all__ = ['CompanyList']
 
-class HouseholdList(DAList):
+class CompanyList(DAList):
     def init(self, *pargs, **kwargs):
-        super(HouseholdList, self).init(*pargs, **kwargs)
+        super(CompanyList, self).init(*pargs, **kwargs)
         self.object_type = Individual
     
     @property
-    def spouse(self):
+    def member(self):
         for person in self.elements:
             if hasattr(person,'relationship'):
-                if person.relationship.lower() in ['spouse','husband', 'wife','partner','unmarried partner','spouse/domestic partner']:
+                if person.relationship.lower() in ['member']:
                     return person
         return DAEmpty()
     
     @property
-    def children(self):
-        """ Returns list of direct children/step/foster children (not grandchildren) based on the relationship attribute."""
-        return self.has_relationship(['child','son','daughter','foster child','stepchild','step child'])
+    def officer(self):
+        """ Returns list of officers"""
+        return self.has_relationship(['president','vice-president','secretary','treasurer','ceo','cto','cfo'])
 
     @property
-    def guardians(self):
-        """Returns legal guardians or parents"""
+    def director(self):
+        """Returns directors"""
         return self.has_relationship( ['parent','guardian','father','mother',
                 'legal guardian','step father','step mother','stepparent','step parent'])
 
     @property
-    def grandchildren(self):
-        """Returns grandchildren"""
-        return self.has_relationship(['grandchild','grand child','grandson','granddaughter',
-                'grand son','grand daughter'])
+    def investor(self):
+        """Returns investors"""
+        return self.has_relationship(['stock holder','member','partner','owner', 'investor'])
     
     @property
     def coclients(self):
