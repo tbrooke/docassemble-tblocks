@@ -1,0 +1,32 @@
+metadata:
+  title: Form C and Disclsure packet (Reg CF)
+  short title: Form C
+  comment: This interview completes a basic reg CF form C Disclosure
+---
+include:
+  - basic-questions.yml
+---
+mandatory: True
+question: |
+  Here is your document, ${ client }.
+subquestion: |
+  In order ${ company }, you will need this.
+attachments:
+  - name: Form C
+    filename: form_c
+    docx template file: FORM_C.docx
+    valid formats:
+      - pdf
+      - docx
+---
+question: |
+  What is your company?
+fields:
+  - company:  company
+    hint: the names of your Company.
+---
+code: |
+  if user.age_in_years() < 18:
+    benefits = "CHIP"
+  else:
+    benefits = "Medicaid"
