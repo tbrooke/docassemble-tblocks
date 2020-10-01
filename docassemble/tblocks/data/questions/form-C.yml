@@ -5,12 +5,98 @@ metadata:
 ---
 include:
   - basic-questions.yml
+objects:
+  - company: Organization
+  - client: Individual
+---
+modules:
+  - docassemble.base.util
+---
+comment: |
+## Mandatory block that determines interview order
+mandatory: true
+code: |
+  intro_yesno
+  client.email
+  company.name
+  company.address
+  if company.address.state != "DE":
+    state_of_inc
+---
+id: Intro Screen
+question: |
+  Form C 
+  Required Disclosures
+subquestion: |
+  A Company that wants to raise money using Regulation Crowdfunding must give certain information to prospective Investors, so Investors will have a basis for making an informed decision. The Securities and Exchange Commission, or SEC, has issued regulations at 17 CFR §227.201 listing the information companies must provide. This form – Form C – is the form used to provide that information.
+  
+  You will be asked questions that correspond to sections of the SEC’s regulations. In some cases, we’ve provided instructions for the Company completing this form. 
+
+  Do you have the information about your company and finances ready?
+
+yesno: intro_yesno
+---
+mandatory: true
+question: |
+  ${client.name.familiar()}, we need some basic information?
+fields: 
+  - email: client.email
+  - phone: client.phone_number
+  - Address: client.address.address
+  - Unit: client.address.unit
+    required: False
+  - City: client.address.city
+  - State: client.address.state
+    required: False
+  - Postal Code: client.address.postal_code
+    required: False
+  - Country: client.address.country
+    code: |
+      countries_list()
+    required: False
+---
+question: |
+  Enter the name of your company?
+fields:
+  - company:  company.name.text
+---
+question: |
+  Enter the address of ${company.name}?
+fields:
+  - Address: company.address.address
+  - Unit: company.address.unit
+    required: False
+  - City: company.address.city
+  - State: company.address.state
+    default: Delaware
+    code: |
+      states_list()
+    required: False
+  - Postal Code: company.address.postal_code
+    required: False
+  - Country: company.address.country
+    default: |
+      United States
+    required: False
+---
+question: |
+  You indicated that your company was incorporated in ${company.address.state}. The process is much easier with a Delware corporation. 
+  
+  If you wish to proceed with a non Delware corporation please confirm this be pressing yes and we will get with you to discuss it.
+
+yesno: state_of_inc
+---
+question: |
+  Please sign your name below
+subquestion: |
+  By signing below you confirm that you have read the disclosure and the information provided is true.
+signature: client_sig
 ---
 mandatory: True
 question: |
-  Here is your document, ${ client }.
+  Here is your Form C Disclosure Statement, ${ client }.
 subquestion: |
-  In order ${ company }, you will need this.
+  In order ${ company.name }, you will need this.
 attachments:
   - name: Form C
     filename: form_c
@@ -19,14 +105,4 @@ attachments:
       - pdf
       - docx
 ---
-question: |
-  What is your company?
-fields:
-  - company:  company
-    hint: the names of your Company.
----
-code: |
-  if user.age_in_years() < 18:
-    benefits = "CHIP"
-  else:
-    benefits = "Medicaid"
+

@@ -7,8 +7,6 @@ comment: |
 ---
 modules:
   - docassemble.base.util
-  - docassemble.tblocks.company
-  - docassemble.income.income
 ---
 #mandatory: True
 objects:
