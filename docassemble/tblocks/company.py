@@ -24,28 +24,21 @@ class CompanyList(DAList):
     @property
     def director(self):
         """Returns directors"""
-        return self.has_relationship( ['parent','guardian','father','mother',
-                'legal guardian','step father','step mother','stepparent','step parent'])
+        return self.has_relationship( ['director'])
 
     @property
     def investor(self):
         """Returns investors"""
-        return self.has_relationship(['stock holder','member','partner','owner', 'investor'])
+        return self.has_relationship(['shareholder','member','partner','owner', 'investor'])
     
     @property
-    def coclients(self):
-        """Return a list of coclients"""
-        return self.has_relationship(['co-client','coclient'])
+    def representative(self):
+        """Return a list of representatives """
+        return self.has_relationship(['attorney','agent','registered-agent','employee'])
 
-    @property
-    def siblings(self):
-        """Return a list of siblings"""
-        return self.has_relationship(['sibling','brother','sister','step sister','step brother',
-            'stepsister','stepbrother','half brother','half sister','half sibling','foster brother',
-            'foster sister','foster sibling'])
     
     def has_relationship(self, relationships):
-        """Return a list of household memberships with the specified relationship attribute. Relationship may be a string or list of strings."""
+        """Return a list of company memberships with the specified relationship attribute. Relationship may be a string or list of strings."""
         related = DAList(object_type=Individual, auto_gather=False,gathered=True)
         for person in self.elements:
             if hasattr(person,'relationship'):

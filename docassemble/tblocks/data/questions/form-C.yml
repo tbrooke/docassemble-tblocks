@@ -8,6 +8,8 @@ include:
 objects:
   - company: Organization
   - client: Individual
+  - developer: Individual
+  - manager: Individual
 ---
 modules:
   - docassemble.base.util
