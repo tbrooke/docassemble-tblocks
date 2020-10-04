@@ -4,26 +4,28 @@ metadata:
   comment: This interview completes a basic reg CF form C Disclosure
 ---
 include:
-  - basic-questions.yml
+  - basic-questions-tblocks.yml
 objects:
-  - company: Organization
+  - issuer: Organization
   - client: Individual
-  - developer: Individual
   - manager: Individual
+  - directors: PeopleList
+  - members: PeopleList
 ---
 modules:
   - docassemble.base.util
+  - .company
 ---
 comment: |
 ## Mandatory block that determines interview order
 mandatory: true
 code: |
   intro_yesno
+  client.name.first
   client.email
-  company.name
-  company.address
-  if company.address.state != "DE":
-    state_of_inc
+  issuer.name
+  issuer.address 
+  issuer.email
 ---
 id: Intro Screen
 question: |
@@ -40,9 +42,22 @@ yesno: intro_yesno
 ---
 mandatory: true
 question: |
+  Please enter your name and E-mail to get started
+subquestion:
+  Answering these questions will provide all of the information we need to complete your Form C and disclosure packet.
+  
+fields:
+  - First Name:  client.name.first
+  - Middle Name: client.name.middle
+    required: false
+  - Last Name:   client.name.last
+  - E-mail:  client.email
+    datatype: email
+---
+mandatory: true
+question: |
   ${client.name.familiar()}, we need some basic information?
 fields: 
-  - email: client.email
   - phone: client.phone_number
   - Address: client.address.address
   - Unit: client.address.unit
@@ -58,35 +73,36 @@ fields:
     required: False
 ---
 question: |
-  Enter the name of your company?
+  Let's find out about your company first.
+  
+subquestion:
+  This should be the name of the company that will be raising funds. This will be the Issuer for your offering.
 fields:
-  - company:  company.name.text
+  - Issuer's Name:  issuer.name.last
 ---
 question: |
-  Enter the address of ${company.name}?
+  Enter the address of ${issuer.name.last}?
 fields:
-  - Address: company.address.address
-  - Unit: company.address.unit
+  - Address: issuer.address.address
+  - Unit: issuer.address.unit
     required: False
-  - City: company.address.city
-  - State: company.address.state
+  - City: issuer.address.city
+  - State: issuer.address.state
     default: Delaware
     code: |
       states_list()
     required: False
-  - Postal Code: company.address.postal_code
+  - Postal Code: issuer.address.postal_code
     required: False
-  - Country: company.address.country
+  - Country: issuer.address.country
     default: |
       United States
     required: False
 ---
 question: |
-  You indicated that your company was incorporated in ${company.address.state}. The process is much easier with a Delware corporation. 
-  
-  If you wish to proceed with a non Delware corporation please confirm this be pressing yes and we will get with you to discuss it.
-
-yesno: state_of_inc
+  What is ${issuer.name.last}'s E-mail?
+fields:
+   - E-Mail: issuer.email
 ---
 question: |
   Please sign your name below
@@ -98,7 +114,7 @@ mandatory: True
 question: |
   Here is your Form C Disclosure Statement, ${ client }.
 subquestion: |
-  In order ${ company.name }, you will need this.
+  In order ${ issuer.name }, you will need this.
 attachments:
   - name: Form C
     filename: form_c
