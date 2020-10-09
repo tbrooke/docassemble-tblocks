@@ -145,6 +145,13 @@ fields:
   datatype: date
   default: 12/31/2020
 ---
+question:
+  If your company is involved in arbitration down the road in what state would you like to arbitrate?
+fields: 
+  - State: arbitration_state
+    code: |
+      states_list()
+---
 question: |
   Now we need to gather information about ${issuer.name}, ${issuer_business_type}.
 subquestion: |
@@ -173,7 +180,6 @@ subquestion: |
 yesno: review_info
 ---
 question: |
-
   Please sign your name below
 subquestion: |
   By signing below you confirm that you have read the disclosure and the information provided is true.
