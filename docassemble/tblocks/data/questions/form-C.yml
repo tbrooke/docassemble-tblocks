@@ -1,16 +1,18 @@
 metadata:
-  title: Form C and Disclsure packet (Reg CF)
+  title: Form C and Disclosure packet (Reg CF)
   short title: Form C
   comment: This interview completes a basic reg CF form C Disclosure
 ---
 include:
-  - basic-questions-tblocks.yml
+  - basic-questions.yml
 objects:
   - issuer: Organization
   - client: Individual
   - manager: Individual
   - directors: PeopleList
   - members: PeopleList
+  - investors: PeopeList
+  - representatives: PeopleList
 ---
 modules:
   - docassemble.base.util
@@ -21,11 +23,19 @@ comment: |
 mandatory: true
 code: |
   intro_yesno
-  client.name.first
+  client.name
   client.email
   issuer.name
-  issuer.address 
-  issuer.email
+  if inc_yesno == True:
+    issuer.address.address
+    issuer.email
+  issuer_state
+  if inc_yesno == True:
+    issue_date
+  issuer_business_type
+  year_end_date
+  management_structure
+  review_info
 ---
 id: Intro Screen
 question: |
@@ -36,7 +46,7 @@ subquestion: |
   
   You will be asked questions that correspond to sections of the SEC’s regulations. In some cases, we’ve provided instructions for the Company completing this form. 
 
-  Do you have the information about your company and finances ready?
+  Are you ready to begin?
 
 yesno: intro_yesno
 ---
@@ -54,34 +64,21 @@ fields:
   - E-mail:  client.email
     datatype: email
 ---
-mandatory: true
 question: |
-  ${client.name.familiar()}, we need some basic information?
-fields: 
-  - phone: client.phone_number
-  - Address: client.address.address
-  - Unit: client.address.unit
-    required: False
-  - City: client.address.city
-  - State: client.address.state
-    required: False
-  - Postal Code: client.address.postal_code
-    required: False
-  - Country: client.address.country
-    code: |
-      countries_list()
-    required: False
----
-question: |
-  Let's find out about your company first.
-  
+   What is the name of your company?
 subquestion:
-  This should be the name of the company that will be raising funds. This will be the Issuer for your offering.
+  This should be the name of the company that will be raising funds. If you haven't formed your company yet let us know the name you are considering. 
 fields:
-  - Issuer's Name:  issuer.name.last
+  - Company Name:  issuer.name.text
 ---
 question: |
-  Enter the address of ${issuer.name.last}?
+  Has ${issuer.name} already been formed? 
+yesno: inc_yesno
+---
+question: |
+  Enter the address of ${issuer.name}?
+subquestion:
+  This address is the address of the principal office of ${issuer.name}
 fields:
   - Address: issuer.address.address
   - Unit: issuer.address.unit
@@ -94,17 +91,89 @@ fields:
     required: False
   - Postal Code: issuer.address.postal_code
     required: False
-  - Country: issuer.address.country
-    default: |
-      United States
-    required: False
+  - Phone Number: issuer.phone
 ---
 question: |
-  What is ${issuer.name.last}'s E-mail?
+  Enter the web address and the email address for ${issuer.name}?
+subquestion: |
+  You are required to have a web site and an email address
 fields:
-   - E-Mail: issuer.email
+   - ${issuer.name} email: issuer.email
+   - ${issuer.name} Website: issuer_web
 ---
 question: |
+  What type of business 
+  % if inc_yesno == True:
+    is ${issuer.name}?
+  % else:
+    will ${issuer.name} be?
+  % endif:
+field: issuer_business_type 
+choices:
+  - LLC: LLC
+  - LP: LLP
+  - Other: Other
+under:
+  If you choose other you may incur additional legal expenses.
+---
+question: |
+  Enter the state where ${issuer.name} 
+   % if inc_yesno == True:
+     was created.
+   % else:
+     will be created.
+   %endif:
+subquestion:
+  For any state other than Delaware you will need to hire local counsel at your expense.
+fields: 
+  - Issuer State: issuer_state
+    default: Delaware
+    code: |
+      states_list()
+---
+question:
+  What date was ${issuer.name} formed?
+fields:
+  - Date of Formation: issue_date
+    datatype: date
+---
+needs: issuer.address.address
+question: |
+  On what date does the fiscal year for ${issuer.name} end:
+fields:
+  Year End Date: year_end_date
+  datatype: date
+  default: 12/31/2020
+---
+question: |
+  Now we need to gather information about ${issuer.name}, ${issuer_business_type}.
+subquestion: |
+  Is ${issuer.name} managed by:
+field: management_structure
+choices:
+  - Separate Entity (SPV)
+  - Individual
+  - Multiple Individuals
+under:
+  A company may create a separate entity to raise money in an offering, so that investors are investing in the separate entity rather than in the company itself. The result is that the company itself will have only one investor – the SPV – added to its cap table rather than all the individual investors in the offering. An SPV of this kind is subject to special rules and limitations.
+
+---
+question: |
+  Is ${client.name} the manager?
+yesno: client_manager
+---
+question: |
+  It is critical that all of your information is correct for your Form-C. Please review the following information.
+subquestion: |
+  Company Name: ${issuer.name}
+  Type of entity: ${issuer_business_type}
+  Creation Date: ${issue_date}
+  State: ${issuer_state}
+  Is this Correct?
+yesno: review_info
+---
+question: |
+
   Please sign your name below
 subquestion: |
   By signing below you confirm that you have read the disclosure and the information provided is true.
@@ -112,9 +181,9 @@ signature: client_sig
 ---
 mandatory: True
 question: |
-  Here is your Form C Disclosure Statement, ${ client }.
+  Here is your Form C Disclosure Statement, ${ client } for ${issuer.name}
 subquestion: |
-  In order ${ issuer.name }, you will need this.
+  Please review it
 attachments:
   - name: Form C
     filename: form_c
