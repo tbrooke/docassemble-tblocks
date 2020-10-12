@@ -9,7 +9,11 @@ objects:
   - issuer: Organization
   - client: Individual
   - manager: Individual
-  - directors: PeopleList
+  - manager_corp: Organization
+  - officer: DAList.using(
+      object_type=Individual,
+      complete_attribute='complete',
+      there_are_any=True)
   - members: PeopleList
   - investors: PeopeList
   - representatives: PeopleList
@@ -35,6 +39,14 @@ code: |
   issuer_business_type
   year_end_date
   management_structure
+  if management_structure == "A Person":
+    manager.name
+    manager.address.address
+  else:
+    manager_corp.name.text
+    manager_corp.address.address
+    manager_corp_manager
+  officer.there_is_another
   review_info
 ---
 id: Intro Screen
@@ -139,7 +151,13 @@ fields:
 ---
 needs: issuer.address.address
 question: |
-  On what date does the fiscal year for ${issuer.name} end:
+  On what date 
+  % if inc_yesno == True:
+    does
+  % else:
+    do you expect
+  % endif:
+    the fiscal year for ${issuer.name} to end:
 fields:
   Year End Date: year_end_date
   datatype: date
@@ -153,21 +171,68 @@ fields:
       states_list()
 ---
 question: |
-  Now we need to gather information about ${issuer.name}, ${issuer_business_type}.
-subquestion: |
-  Is ${issuer.name} managed by:
+  % if inc_yesno == True:
+     Is ${issuer.name}
+   % else:
+     will ${issuer.name} be
+   %endif:
+    managed by:
 field: management_structure
 choices:
-  - Separate Entity (SPV)
-  - Individual
-  - Multiple Individuals
-under:
-  A company may create a separate entity to raise money in an offering, so that investors are investing in the separate entity rather than in the company itself. The result is that the company itself will have only one investor – the SPV – added to its cap table rather than all the individual investors in the offering. An SPV of this kind is subject to special rules and limitations.
-
+  - A Person
+  - Another Company
 ---
 question: |
-  Is ${client.name} the manager?
-yesno: client_manager
+  What is the manager's name?
+fields:
+  - First Name:  manager.name.first
+  - Middle Name: manager.name.middle
+    required: false
+  - Last Name:   manager.name.last
+  - E-mail:  manager.email
+    datatype: email
+---
+question: |
+  Enter ${manager.name}'s address.
+fields:
+  - Address: manager.address.address
+  - Unit: manager.address.unit
+    required: False
+  - City: manager.address.city
+  - State: manager.address.state
+    default: Delaware
+    code: |
+      states_list()
+    required: False
+  - Postal Code: manager.address.postal_code
+    required: False
+  - Phone: manager.phone
+---
+question: |
+  What is the name of the company that will manage ${issuer.name}?
+fields:
+  Managing Company: manager_corp.name.text
+---
+question: |
+  What is the address of ${manager_corp}?
+fields:
+  - Address: manager_corp.address.address
+  - Unit: manager_corp.address.unit
+    required: False
+  - City: manager_corp.address.city
+  - State: manager_corp.address.state
+    default: Delaware
+    code: |
+      states_list()
+    required: False
+  - Postal Code: manager_corp.address.postal_code
+    required: False
+  - Phone Number: manager_corp.phone
+---
+question: |
+  Who is the manager of ${manager_corp.name}?
+fields: 
+  - ${manager_corp.name}'s manager: manager_corp_manager
 ---
 question: |
   It is critical that all of your information is correct for your Form-C. Please review the following information.
@@ -184,6 +249,42 @@ question: |
 subquestion: |
   By signing below you confirm that you have read the disclosure and the information provided is true.
 signature: client_sig
+---
+code: |
+  officer[i].name.first
+  officer[i].name.middle
+  officer[i].name.last
+  officer[i].complete = True
+---
+mandatory: True
+question: |
+  What is the name of the ${ ordinal(i) }
+  officer?
+fields:
+  - First Name: officer[i].name.first
+  - Middle Name: officer[i].name.middle
+  - Last Name: officer[i].name.last
+---
+question: |
+  What is
+  ${ officer[i].possessive('address') }?
+fields:
+  - Address: officer[i].address.address
+  - Unit: officer[i].address.unit
+    required: False
+  - City: officer[i].address.city
+  - State: officer[i].address.state
+    default: Delaware
+    code: |
+      states_list()
+    required: False
+  - Postal Code: officer[i].address.postal_code
+    required: False
+  - Phone: officer[i].phone
+---
+question: |
+  Are there any other officers?
+yesno: officer.there_is_another
 ---
 mandatory: True
 question: |
