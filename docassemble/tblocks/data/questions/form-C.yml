@@ -12,8 +12,7 @@ objects:
   - manager_corp: Organization
   - officer: DAList.using(
       object_type=Individual,
-      complete_attribute='complete',
-      there_are_any=True)
+      complete_attribute='complete')
   - members: PeopleList
   - investors: PeopeList
   - representatives: PeopleList
@@ -46,7 +45,7 @@ code: |
     manager_corp.name.text
     manager_corp.address.address
     manager_corp_manager
-  officer.there_is_another
+  officer.gather()
   review_info
 ---
 id: Intro Screen
@@ -250,6 +249,15 @@ subquestion: |
   By signing below you confirm that you have read the disclosure and the information provided is true.
 signature: client_sig
 ---
+question: |
+  We need the names of the individuals officers associated with your Company.
+subquestion: |
+  By “officer,” we mean a President, Vice-President, Secretary, Treasurer, Chief Financial Officer, Comptroller, or Chief Accounting Officer.Include anyone who serves in the role of an officer or director even if he or she doesn’t have the title. If your Company is a limited liability company, include any individual who is a manager or an officer. If your LLC is managed by its members, include all members. If your Company is a general partnership, include any individual who is a general partner or an officer.Include officers and directors of the SPV if you are using one (and if they are different).  Include the following information for each person on your list - 1) Name; 2) Company Title; 3) How long they have held that position;  4) A short one-sentence description of their business experience, over the last 3 years;  5) Their principal occupation over the last 3 years and 6) if they have been employed by anyone else the name and business name of their employer.  
+
+  Proceed?
+
+yesno: officer.there_are_any
+---
 code: |
   officer[i].name.first
   officer[i].name.middle
@@ -263,6 +271,7 @@ question: |
 fields:
   - First Name: officer[i].name.first
   - Middle Name: officer[i].name.middle
+    required: False
   - Last Name: officer[i].name.last
 ---
 question: |
