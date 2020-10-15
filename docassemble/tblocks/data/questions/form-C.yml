@@ -1,6 +1,6 @@
-metadata:
-  title: Form C and Disclosure packet (Reg CF)
-  short title: Form C
+﻿metadata:
+  title: Form C  (Reg CF)
+  short title: Form C[a]
   comment: This interview completes a basic reg CF form C Disclosure
 ---
 include:
@@ -12,10 +12,9 @@ objects:
   - manager_corp: Organization
   - officer: DAList.using(
       object_type=Individual,
-      complete_attribute='complete',
-      there_are_any=True)
+      complete_attribute='complete')
   - members: PeopleList
-  - investors: PeopeList
+  - investors: PeopleList
   - representatives: PeopleList
 ---
 modules:
@@ -46,51 +45,54 @@ code: |
     manager_corp.name.text
     manager_corp.address.address
     manager_corp_manager
-  officer.there_is_another
+  officer.gather()
   review_info
 ---
 id: Intro Screen
 question: |
-  Form C 
-  Required Disclosures
+  Form C Questionnaire
 subquestion: |
-  A Company that wants to raise money using Regulation Crowdfunding must give certain information to prospective Investors, so Investors will have a basis for making an informed decision. The Securities and Exchange Commission, or SEC, has issued regulations at 17 CFR §227.201 listing the information companies must provide. This form – Form C – is the form used to provide that information.
-  
-  You will be asked questions that correspond to sections of the SEC’s regulations. In some cases, we’ve provided instructions for the Company completing this form. 
-
+  A Company that wants to raise money using Regulation Crowdfunding or Regulation D (also known as 506(c) must provide very specific information to prospective Investors, so Investors will have a basis for making an informed investment decision. The Securities and Exchange Commission  (SEC) has issued regulations at 17 CFR §227.201 listing the information companies must provide. Your responses to this questionnaire will provide the information to draft a disclosure packet for your Company, which will then be filed with the SEC. ..
+ 
   Are you ready to begin?
 
 yesno: intro_yesno
 ---
 mandatory: true
 question: |
-  Please enter your name and E-mail to get started
+  What’s your name and email address?  And what’s your role in the Company? 
 subquestion:
-  Answering these questions will provide all of the information we need to complete your Form C and disclosure packet.
+The Company refers to the Company raising funds. 
   
 fields:
-  - First Name:  client.name.first
+  - First name:  client.name.first
   - Middle Name: client.name.middle
     required: false
-  - Last Name:   client.name.last
-  - E-mail:  client.email
+  - Last name:   client.name.last
+  - E-mail address:  client.email
     datatype: email
+  - Role in Company:
+
+----
+question: |
+About the Company
+subquestion: |
+Let’s find out about your company first.
+Yesno: company_info
 ---
 question: |
-   What is the name of your company?
+   What’s the name of your Company?
 subquestion:
   This should be the name of the company that will be raising funds. If you haven't formed your company yet let us know the name you are considering. 
 fields:
-  - Company Name:  issuer.name.text
+  - Company name:  issuer.name.text
 ---
 question: |
   Has ${issuer.name} already been formed? 
 yesno: inc_yesno
 ---
 question: |
-  Enter the address of ${issuer.name}?
-subquestion:
-  This address is the address of the principal office of ${issuer.name}
+  What’s the legal address for  ${issuer.name}?
 fields:
   - Address: issuer.address.address
   - Unit: issuer.address.unit
@@ -101,20 +103,23 @@ fields:
     code: |
       states_list()
     required: False
-  - Postal Code: issuer.address.postal_code
+  - Zip Code: issuer.address.postal_code
     required: False
-  - Phone Number: issuer.phone
+  - Phone number: issuer.phone
+  - Email address:
 ---
 question: |
-  Enter the web address and the email address for ${issuer.name}?
+  What’s your  website url for ${issuer.name}?
 subquestion: |
-  You are required to have a web site and an email address
+  You’ll need to provide a url to comply with SEC regulations. If you don’t have one for the Company, then your business website is fine. This is primarily a place where your annual report can be posted. 
 fields:
-   - ${issuer.name} email: issuer.email
+  
    - ${issuer.name} Website: issuer_web
 ---
 question: |
-  What type of business 
+ What type of entity is ${issuer.name}
+Subquestion:
+If you choose anything but “LLC”, additional legal fees may be incurred by you.
   % if inc_yesno == True:
     is ${issuer.name}?
   % else:
@@ -125,46 +130,44 @@ choices:
   - LLC: LLC
   - LP: LLP
   - Other: Other
-under:
-  If you choose other you may incur additional legal expenses.
 ---
 question: |
-  Enter the state where ${issuer.name} 
+  In what state  
    % if inc_yesno == True:
-     was created.
+     was ${issue.name} created.
    % else:
-     will be created.
+     will ${issue.name} be created.
    %endif:
-subquestion:
-  For any state other than Delaware you will need to hire local counsel at your expense.
-fields: 
+Subquestion:
+If you organized anywhere but Delaware, additional legal fees may be incurred by you.
+
   - Issuer State: issuer_state
     default: Delaware
     code: |
       states_list()
 ---
 question:
-  What date was ${issuer.name} formed?
+  What date was ${issuer.name} legally organized?
 fields:
-  - Date of Formation: issue_date
+  - Date of organization: issue_date
     datatype: date
 ---
 needs: issuer.address.address
 question: |
-  On what date 
+  On what day and month 
   % if inc_yesno == True:
     does
   % else:
-    do you expect
+    will
   % endif:
-    the fiscal year for ${issuer.name} to end:
+    ${issuer.name}’s fiscal year end:
 fields:
   Year End Date: year_end_date
   datatype: date
-  default: 12/31/2020
+  default: 12/31
 ---
 question:
-  If your company is involved in arbitration down the road in what state would you like to arbitrate?
+  If ${issuer.name} is involved in arbitration down the road in what state would you like to arbitrate?
 fields: 
   - State: arbitration_state
     code: |
@@ -172,28 +175,30 @@ fields:
 ---
 question: |
   % if inc_yesno == True:
-     Is ${issuer.name}
+     Is the manager of ${issuer.name} a:
    % else:
-     will ${issuer.name} be
+     will the manager of ${issuer.name} be:
    %endif:
     managed by:
 field: management_structure
 choices:
-  - A Person
-  - Another Company
+  - A person
+  - Another company
 ---
 question: |
-  What is the manager's name?
+  Tell us the Manager's name?
+Subquestion:
+  This will be either a person, or another company name.
 fields:
-  - First Name:  manager.name.first
-  - Middle Name: manager.name.middle
+  - First name:  manager.name.first
+  - Middle Initial: manager.initial.middle
     required: false
-  - Last Name:   manager.name.last
-  - E-mail:  manager.email
+  - Last name:   manager.name.last
+  - E-mail address:  manager.email
     datatype: email
 ---
 question: |
-  Enter ${manager.name}'s address.
+ What is the ${manager.name}'s contact information?.
 fields:
   - Address: manager.address.address
   - Unit: manager.address.unit
@@ -204,14 +209,9 @@ fields:
     code: |
       states_list()
     required: False
-  - Postal Code: manager.address.postal_code
+  - Zip Code: manager.address.postal_code
     required: False
   - Phone: manager.phone
----
-question: |
-  What is the name of the company that will manage ${issuer.name}?
-fields:
-  Managing Company: manager_corp.name.text
 ---
 question: |
   What is the address of ${manager_corp}?
@@ -225,14 +225,9 @@ fields:
     code: |
       states_list()
     required: False
-  - Postal Code: manager_corp.address.postal_code
+  - Zip Code: manager_corp.address.postal_code
     required: False
   - Phone Number: manager_corp.phone
----
-question: |
-  Who is the manager of ${manager_corp.name}?
-fields: 
-  - ${manager_corp.name}'s manager: manager_corp_manager
 ---
 question: |
   It is critical that all of your information is correct for your Form-C. Please review the following information.
@@ -248,7 +243,30 @@ question: |
   Please sign your name below
 subquestion: |
   By signing below you confirm that you have read the disclosure and the information provided is true.
-signature: client_sig
+signature: client_sig[b]
+---
+question: |
+Complete one form for each(proposed) Director or Officer for both the .
+subquestion: |
+ By “officer,” we mean a President, Vice-President, Secretary, Treasurer, Chief Financial Officer, Comptroller, or Chief Accounting Officer.Include anyone who serves in the role of an officer or director even if he or she doesn’t have the title. If your Company is a limited liability company, include any individual who is a manager or an officer. If your LLC is managed by its members, include all members. If your Company is a general partnership, include any individual who is a general partner or an officer.Include officers and directors of the SPV if you are using one (and if they are different).  Include the following information for each person on your list - 1) Name; 2) Company Title; 3) How long they have held that position;  4) A short one-sentence description of their business experience, over the last 3 years;  5) Their principal occupation over the last 3 years and 6) if they have been employed by anyone else the name and business name of their employer.  
+
+
+  Proceed?
+
+yesno: officer.there_are_any[d]
+
+
+# Person 1:[e]
+# What’s their name?        
+# Do they have a role in the company or the Manager?
+# What’s their title?
+# How long have they held this position?        
+# Provide a short, one-sentence description of their business experience over the last 3 years?
+# What was their principal occupation over the last 3 years?
+# Were they employed by anyone else?
+# If yes, what was the name and business name of that employer?
+
+
 ---
 code: |
   officer[i].name.first
@@ -263,6 +281,7 @@ question: |
 fields:
   - First Name: officer[i].name.first
   - Middle Name: officer[i].name.middle
+    required: False
   - Last Name: officer[i].name.last
 ---
 question: |
@@ -297,6 +316,13 @@ attachments:
     docx template file: FORM_C.docx
     valid formats:
       - pdf
-      - docx
+      - docx[f]
 ---
 
+
+# [a]Do we need a short title?
+# [b]This doesn't belong here.  Get to the end of the section first.
+# [c]Why is this here?
+# [d]Can you create a form for each person?  And let them add as many forms are they like?
+# [e]Can we ask all of these questions on one page and then add a second?
+# [f]This seems cumbersome.
