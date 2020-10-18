@@ -11,7 +11,7 @@ objects:
   - manager: Individual
   - manager_corp: Organization
   - officer: DAList.using(
-      object_type=Individual,
+      object_type=Officer,
       complete_attribute='complete')
   - members: PeopleList
   - investors: PeopleList
@@ -20,6 +20,7 @@ objects:
 modules:
   - docassemble.base.util
   - .company
+  - .officer
 ---
 comment: |
 ## Mandatory block that determines interview order
@@ -36,15 +37,14 @@ code: |
   if inc_yesno == True:
     issue_date
   issuer_business_type
-  year_end_date
+  year_end_day
   management_structure
   if management_structure == "A Person":
     manager.name
     manager.address.address
-  else:
+  if management_structure == "Another company":
     manager_corp.name.text
     manager_corp.address.address
-    manager_corp_manager
   officer.gather()
   review_info
 ---
@@ -57,12 +57,13 @@ subquestion: |
   Are you ready to begin?
 
 yesno: intro_yesno
+
 ---
 mandatory: true
 question: |
   What’s your name and email address?  And what’s your role in the Company? 
-subquestion:
-The Company refers to the Company raising funds. 
+subquestion: |
+  The Company refers to the Company raising funds. 
   
 fields:
   - First name:  client.name.first
@@ -71,18 +72,11 @@ fields:
   - Last name:   client.name.last
   - E-mail address:  client.email
     datatype: email
-  - Role in Company:
-
-----
-question: |
-About the Company
-subquestion: |
-Let’s find out about your company first.
-Yesno: company_info
+  - Role in Company: client_role
 ---
 question: |
    What’s the name of your Company?
-subquestion:
+subquestion: |
   This should be the name of the company that will be raising funds. If you haven't formed your company yet let us know the name you are considering. 
 fields:
   - Company name:  issuer.name.text
@@ -92,7 +86,7 @@ question: |
 yesno: inc_yesno
 ---
 question: |
-  What’s the legal address for  ${issuer.name}?
+  What's the legal address for ${issuer.name}?
 fields:
   - Address: issuer.address.address
   - Unit: issuer.address.unit
@@ -106,7 +100,7 @@ fields:
   - Zip Code: issuer.address.postal_code
     required: False
   - Phone number: issuer.phone
-  - Email address:
+  - Email address: issuer.email
 ---
 question: |
   What’s your  website url for ${issuer.name}?
@@ -117,14 +111,16 @@ fields:
    - ${issuer.name} Website: issuer_web
 ---
 question: |
- What type of entity is ${issuer.name}
-Subquestion:
-If you choose anything but “LLC”, additional legal fees may be incurred by you.
+   What type of entity is ${issuer.name}
+Subquestion: |
+  If you choose anything but “LLC”, additional legal fees may be incurred by you.
+  
   % if inc_yesno == True:
     is ${issuer.name}?
   % else:
     will ${issuer.name} be?
   % endif:
+  
 field: issuer_business_type 
 choices:
   - LLC: LLC
@@ -134,13 +130,14 @@ choices:
 question: |
   In what state  
    % if inc_yesno == True:
-     was ${issue.name} created.
+     was ${issuer.name} created.
    % else:
-     will ${issue.name} be created.
-   %endif:
-Subquestion:
-If you organized anywhere but Delaware, additional legal fees may be incurred by you.
+     will ${issuer.name} be created.
+   % endif:
+Subquestion: |
+  If you organized anywhere but Delaware, additional legal fees may be incurred by you.
 
+fields:
   - Issuer State: issuer_state
     default: Delaware
     code: |
@@ -162,9 +159,25 @@ question: |
   % endif:
     ${issuer.name}’s fiscal year end:
 fields:
-  Year End Date: year_end_date
-  datatype: date
-  default: 12/31
+  - Day: year_end_day
+    code: |
+      range(1,32)
+    default: 31
+  - Month: year_end_month
+    choices:
+    -  January
+    -  February
+    -  March
+    -  April
+    -  May
+    -  June
+    -  July
+    -  August
+    -  September
+    -  October
+    -  November
+    -  December
+    default: "December"
 ---
 question:
   If ${issuer.name} is involved in arbitration down the road in what state would you like to arbitrate?
@@ -186,19 +199,30 @@ choices:
   - Another company
 ---
 question: |
-  Tell us the Manager's name?
-Subquestion:
-  This will be either a person, or another company name.
+  What is the Manager's name?
 fields:
   - First name:  manager.name.first
   - Middle Initial: manager.initial.middle
-    required: false
+    required: False
   - Last name:   manager.name.last
   - E-mail address:  manager.email
     datatype: email
 ---
 question: |
- What is the ${manager.name}'s contact information?.
+  What is the Managing Company's name and address?
+fields:
+  -  Company name:  manager_corp.name.text
+  -  Address: manager_corp.address.address
+  -  Unit: manager_corp.address.unit
+     required: False
+  -  City: manager_corp.address.city
+  -  State: manager_corp.address.state
+  -  Zip Code: manager_corp.address.postal_code
+  -  E-mail address:  manager_corp.email
+     datatype: email
+---
+question: |
+   What is the ${manager.name}'s contact information?.
 fields:
   - Address: manager.address.address
   - Unit: manager.address.unit
@@ -246,60 +270,65 @@ subquestion: |
 signature: client_sig[b]
 ---
 question: |
-Complete one form for each(proposed) Director or Officer for both the .
+  Complete one form for each(proposed) Director or Officer for both the .
 subquestion: |
- By “officer,” we mean a President, Vice-President, Secretary, Treasurer, Chief Financial Officer, Comptroller, or Chief Accounting Officer.Include anyone who serves in the role of an officer or director even if he or she doesn’t have the title. If your Company is a limited liability company, include any individual who is a manager or an officer. If your LLC is managed by its members, include all members. If your Company is a general partnership, include any individual who is a general partner or an officer.Include officers and directors of the SPV if you are using one (and if they are different).  Include the following information for each person on your list - 1) Name; 2) Company Title; 3) How long they have held that position;  4) A short one-sentence description of their business experience, over the last 3 years;  5) Their principal occupation over the last 3 years and 6) if they have been employed by anyone else the name and business name of their employer.  
+  By “officer,” we mean a President, Vice-President, Secretary, Treasurer, Chief Financial Officer, Comptroller, or Chief Accounting Officer.Include anyone who serves in the role of an officer or director even if he or she doesn’t have the title. If your Company is a limited liability company, include any individual who is a manager or an officer. If your LLC is managed by its members, include all members. If your Company is a general partnership, include any individual who is a general partner or an officer.Include officers and directors of the SPV if you are using one (and if they are different).
 
 
   Proceed?
 
-yesno: officer.there_are_any[d]
-
-
-# Person 1:[e]
-# What’s their name?        
-# Do they have a role in the company or the Manager?
-# What’s their title?
-# How long have they held this position?        
-# Provide a short, one-sentence description of their business experience over the last 3 years?
-# What was their principal occupation over the last 3 years?
-# Were they employed by anyone else?
-# If yes, what was the name and business name of that employer?
-
+yesno: officer.there_are_any
 
 ---
+## Person 1:[e]
+## What’s their name?        
+## Do they have a role in the company or the Manager?
+## What’s their title?
+## How long have they held this position?        
+## Provide a short, one-sentence description of their business ##experience over the last 3 years?
+## What was their principal occupation over the last 3 years?
+## Were they employed by anyone else?
+## If yes, what was the name and business name of that employer?
+
+mandatory: True
+
 code: |
   officer[i].name.first
   officer[i].name.middle
   officer[i].name.last
+  officer[i].position
+  officer[i].how_long
+  officer[i].experience
+  officer[i].occupation
+  officer[i].employers
   officer[i].complete = True
 ---
 mandatory: True
 question: |
   What is the name of the ${ ordinal(i) }
   officer?
+subquestion:
+  We also need the office that they hold and how long they have held it.
 fields:
   - First Name: officer[i].name.first
   - Middle Name: officer[i].name.middle
     required: False
   - Last Name: officer[i].name.last
+  - Position: officer[i].position
+  - How long have you held this position: officer[i].how_long
 ---
 question: |
-  What is
-  ${ officer[i].possessive('address') }?
+  We need to explore
+  ${ officer[i].possessive('business experience.') }?
+subquestion:
+    1) A short one-sentence description of their business experience, over the last 3 years; 2) Their principal occupation over the last 3 years and 3) if they have been employed by anyone else, the name and business name of their employer.
 fields:
-  - Address: officer[i].address.address
-  - Unit: officer[i].address.unit
-    required: False
-  - City: officer[i].address.city
-  - State: officer[i].address.state
-    default: Delaware
-    code: |
-      states_list()
-    required: False
-  - Postal Code: officer[i].address.postal_code
-    required: False
-  - Phone: officer[i].phone
+  - Describe business experience: officer[i].experience
+    input type: area
+  - Occupation last 3 years: officer[i].occupation
+    input type: area
+  - Name and business name of employers: officer[i].employers
+    input type: area
 ---
 question: |
   Are there any other officers?
