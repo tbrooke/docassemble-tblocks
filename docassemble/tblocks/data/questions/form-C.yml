@@ -13,9 +13,9 @@ objects:
   - officer: DAList.using(
       object_type=Officer,
       complete_attribute='complete')
-  - members: PeopleList
-  - investors: PeopleList
-  - representatives: PeopleList
+  - owner: DAList.using(
+      object_type=Officer,
+      complete_attribute='complete')
 ---
 modules:
   - docassemble.base.util
@@ -348,6 +348,34 @@ attachments:
       - docx[f]
 ---
 
+question: |
+  List anyone that owns (or will own) more than 20% of the voting power in the company
+subquestion: |
+ Enter one name per page and continue until finished
+  Proceed?
+
+yesno: owner.there_are_any
+
+---
+
+mandatory: True
+
+code: |
+  owner[i].name.first
+  owner[i].name.middle
+  owner[i].name.last
+---
+mandatory: True
+question: |
+  What is the name of the ${ ordinal(i) }
+  person that owns more than 20% of the voting power?
+
+fields:
+  - First Name: owner[i].name.first
+  - Middle Name: owner[i].name.middle
+    required: False
+  - Last Name: owner[i].name.last
+---
 
 # [a]Do we need a short title?
 # [b]This doesn't belong here.  Get to the end of the section first.
