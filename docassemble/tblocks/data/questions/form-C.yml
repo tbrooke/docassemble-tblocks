@@ -40,23 +40,49 @@ code: |
   year_end_day
   management_structure
   if management_structure == "A Person":
-    manager.name
+    manager.name.first
     manager.address.address
-  if management_structure == "Another company":
+  if management_structure == "Another Company":
     manager_corp.name.text
     manager_corp.address.address
+    manager.name.first
+    manager.address.address
   officer.gather()
-  review_info
+  owner.gather()
+  offering_yesno
+  offering_max
+  invest_min
+  min_spending
+  total_spending
+  start_date
+  funding_date
+  smallest_non_accredited
+  smallest_accredited
+  offering_type
+  if offering_type == "Other":
+    offering_descrip
+  if offering_type["Debt"]:
+    offering_rate
+  if offering_type["Equity"]:
+    offering_equity_terms
+  if offering_equity_terms["Preferred return"]:
+    preferred_rate
+  if offering_equity_terms["Share of cash flow"]:
+    shared_cash_rate
+  if offering_equity_terms["Share of profit"]:
+    shared_cash_rate
+  time_till_payment
+  investment_timing
+  comm_plan
+  investment_term
 ---
 id: Intro Screen
 question: |
   Form C Questionnaire
 subquestion: |
-  A Company that wants to raise money using Regulation Crowdfunding or Regulation D (also known as 506(c) must provide very specific information to prospective Investors, so Investors will have a basis for making an informed investment decision. The Securities and Exchange Commission  (SEC) has issued regulations at 17 CFR §227.201 listing the information companies must provide. Your responses to this questionnaire will provide the information to draft a disclosure packet for your Company, which will then be filed with the SEC. ..
- 
-  Are you ready to begin?
+  A Company that wants to raise money using Regulation Crowdfunding or Regulation D (also known as 506(c) must provide very specific information to prospective Investors, so Investors will have a basis for making an informed investment decision. The Securities and Exchange Commission  (SEC) has issued regulations at 17 CFR §227.201 listing the information companies must provide. Your responses to this questionnaire will provide the information to draft a disclosure packet for your Company, which will then be filed with the SEC.
 
-yesno: intro_yesno
+continue button field: intro_yesno
 
 ---
 mandatory: true
@@ -187,22 +213,26 @@ fields:
       states_list()
 ---
 question: |
-  % if inc_yesno == True:
-     Is the manager of ${issuer.name} a:
+   % if inc_yesno == True:
+     Is ${issuer.name}:
    % else:
-     will the manager of ${issuer.name} be:
-   %endif:
-    managed by:
+     will ${issuer.name} be:
+   % endif:
+     managed by:
 field: management_structure
 choices:
-  - A person
-  - Another company
+  - A Person
+  - Another Company
 ---
 question: |
-  What is the Manager's name?
+  % if management_structure == "Another Company":
+    What is the name of the Manager of ${manager_corp.name.text}?
+  % else:
+    What is the manager's name?
+  % endif:
 fields:
   - First name:  manager.name.first
-  - Middle Initial: manager.initial.middle
+  - Middle Initial: manager.name.middle
     required: False
   - Last name:   manager.name.last
   - E-mail address:  manager.email
@@ -222,7 +252,7 @@ fields:
      datatype: email
 ---
 question: |
-   What is the ${manager.name}'s contact information?.
+   What is ${manager.name}'s contact information?.
 fields:
   - Address: manager.address.address
   - Unit: manager.address.unit
@@ -256,9 +286,8 @@ fields:
 question: |
   It is critical that all of your information is correct for your Form-C. Please review the following information.
 subquestion: |
-  Company Name: ${issuer.name}
+  Company Name: ${issuer.name.text}
   Type of entity: ${issuer_business_type}
-  Creation Date: ${issue_date}
   State: ${issuer_state}
   Is this Correct?
 yesno: review_info
@@ -270,26 +299,18 @@ subquestion: |
 signature: client_sig[b]
 ---
 question: |
-  Complete one form for each(proposed) Director or Officer for both the .
+  Complete one form for each(proposed) Director or Officer for 
+  % if management_structure == "Another company":
+    ${manager_corp.name.text}
+  % else:
+    ${issuer.name}
+  % endif:
+  
 subquestion: |
   By “officer,” we mean a President, Vice-President, Secretary, Treasurer, Chief Financial Officer, Comptroller, or Chief Accounting Officer.Include anyone who serves in the role of an officer or director even if he or she doesn’t have the title. If your Company is a limited liability company, include any individual who is a manager or an officer. If your LLC is managed by its members, include all members. If your Company is a general partnership, include any individual who is a general partner or an officer.Include officers and directors of the SPV if you are using one (and if they are different).
 
-
-  Proceed?
-
-yesno: officer.there_are_any
-
+continue button field: officer.there_are_any
 ---
-## Person 1:[e]
-## What’s their name?        
-## Do they have a role in the company or the Manager?
-## What’s their title?
-## How long have they held this position?        
-## Provide a short, one-sentence description of their business ##experience over the last 3 years?
-## What was their principal occupation over the last 3 years?
-## Were they employed by anyone else?
-## If yes, what was the name and business name of that employer?
-
 mandatory: True
 
 code: |
@@ -345,7 +366,7 @@ attachments:
     docx template file: FORM_C.docx
     valid formats:
       - pdf
-      - docx[f]
+      - docx
 ---
 
 question: |
@@ -354,16 +375,14 @@ subquestion: |
  Enter one name per page and continue until finished
   Proceed?
 
-yesno: owner.there_are_any
-
+continue button field: owner.there_are_any
 ---
-
 mandatory: True
-
 code: |
   owner[i].name.first
   owner[i].name.middle
   owner[i].name.last
+  owner[i].complete = True
 ---
 mandatory: True
 question: |
@@ -376,10 +395,177 @@ fields:
     required: False
   - Last Name: owner[i].name.last
 ---
+question: |
+  Are there any other owners?
+yesno: owner.there_is_another
+---
+mandatory: True
+id: Offering Screen
+question: |
+  About your offering.
+subquestion: |
+  The next series of questions will help us understand your offering goals
 
-# [a]Do we need a short title?
-# [b]This doesn't belong here.  Get to the end of the section first.
-# [c]Why is this here?
-# [d]Can you create a form for each person?  And let them add as many forms are they like?
-# [e]Can we ask all of these questions on one page and then add a second?
-# [f]This seems cumbersome.
+continue button field: offering_yesno
+---
+Question: |
+  What is the maximum amount you want to raise in this offering?
+subquestion: |
+  This is the total amopunt you would like to raise
+fields: 
+  - Maximum Offering Amount: offering_max
+    datatype: currency
+    min: 5000
+---
+question: |
+  What is the minimum goal in this offering?
+subquestion: |
+  This is the least amount that would be useful to you. Less than this, and you will not accept investment commitments.
+  
+fields: 
+  - Minimum investment: invest_min
+    datatype: currency
+    min: 1000
+---
+question: |
+  If you raise your minimmum goal what will you spend it on?
+subquestion: |
+  For example if your minimum goal is $100,000 you will spend $90,000 construction and $10,000 on legal fees.
+fields: 
+  - Spending plan: min_spending
+    input type: area
+---
+question: |
+  If you raise the entire amount, what will you spend it on?
+subquestion: |
+  For example, if you are trying to raise $500,000, your answer might be $350,000 for property acquisition, $5,000 in closing costs, and $145,000 in construction costs.
+fields:
+  - Spending plan: total_spending
+    input type: area
+---
+question: |
+  When would you like to begin your offering?
+subquestion:
+  Assuming you have other things on your plate, give yourself 6 weeks to complete the disclosure packet, and prepare your marketing.
+fields:
+  - Start date: start_date
+    datatype: date
+---
+question: |
+  When do you need the funds in your account for the company to use?
+fields:
+  - Funding date: funding_date
+    datatype: date
+---
+question: |
+  What is the smallest amount you will accept from non accredited invsetors?
+subquestion: |
+  Should not be more that $2,200, which is the amount that anyone can invest annually.
+fields:
+  - Smallest amount: smallest_non_accredited
+    input type: combobox
+    choices:
+      - 500
+      - 1,000
+      - 1,500
+      - 2,000
+under:
+  You may select an amount or enter your own amount as long as it is less than $2,200
+---
+question: |
+  What is the smallest amount you will accept from accredited invsetors?
+subquestion: |
+  Accredited investors can invest as much as they like.
+fields:
+  - Smallest amount: smallest_accredited
+    input type: combobox
+    choices:
+      - 1,000
+      - 2,500
+      - 5,000
+      - 10,000.00
+under:
+  You may select an amount or enter your own amount.
+---
+question:
+  Are you offering equity or debt to investors?
+fields:
+  - "Offering": offering_type
+    datatype: checkboxes
+    choices:
+      - Debt
+      - Equity
+      - Other
+---
+question: |
+  Since you selected other rather than debt or equity please describe your offering?
+fields:
+  - Description: offering_descrip
+    input type: area
+---
+question: |
+  What is the interest rate on your debt offering?
+fields: 
+  -  Interest Rate: offering_rate
+     datatype: integer
+---
+question:
+  Since you are offering equity select any of the following that will be relevant to the terms of your offering?
+fields: 
+  - "Equity terms": offering_equity_terms
+    datatype: checkboxes
+    choices:
+      - Preferred return
+      - Share of cash flow
+      - Share of profit
+      - Other
+---
+question: |
+  Since you are offering a preferred return what will be the interest rate:
+fields:
+  - Interest Rate: preferred_rate
+    datatype: integer
+---
+question: |
+  Since you are offering a share of profit what will be the % share:
+fields:
+  - Shared return: shared_profit_rate
+    datatype: integer
+---
+question: |
+  Since you are offering a share of the cash flow what will be the % share:
+fields:
+  - Shared return: shared_cash_rate
+    datatype: integer
+---
+question: |
+  How soon after the funds are invested will you begin paying interest or the preferred return?
+subquestion:
+  Enter in months or years
+fields:
+  - Time till payment: time_till_payment
+---
+question: |
+  How often will you make disbursements?
+fields: 
+  - "Time period": investment_timing
+    datatype: checkboxes
+    choices:
+      -  Monthly
+      -  Quarterly
+      -  Bi-annually
+      -  Annually
+      -  Other
+---
+question: |
+  Please describe your plan for investor communications once you have the funds and investors
+fields:
+  - Communication plan: comm_plan
+    input type: area
+---
+question: |
+  What is the term of your offering?
+subquestion:
+  In other words, when do you expect to return the equity invested to investors.
+fields: 
+  - Term: investment_term
