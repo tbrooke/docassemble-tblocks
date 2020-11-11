@@ -21,3 +21,7 @@ class Officer(Individual):
     def get_other_employers(self, employers):
         self.employers = employers
         return self.employers
+
+    def need_other_employers(self, other_employers):
+        self.other_employers = other_employers
+        return self.other_employers
