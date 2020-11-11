@@ -38,6 +38,7 @@ code: |
     issue_date
   issuer_business_type
   year_end_day
+  arbitration_state
   management_structure
   if management_structure == "A Person":
     manager.name.first
@@ -80,14 +81,16 @@ id: Intro Screen
 question: |
   Form C Questionnaire
 subquestion: |
-  A Company that wants to raise money using Regulation Crowdfunding or Regulation D (also known as 506(c) must provide very specific information to prospective Investors, so Investors will have a basis for making an informed investment decision. The Securities and Exchange Commission  (SEC) has issued regulations at 17 CFR §227.201 listing the information companies must provide. Your responses to this questionnaire will provide the information to draft a disclosure packet for your Company, which will then be filed with the SEC.
+  Answering these questions will provide all of the information we need to complete your Form C and disclosure packet. Where addendums are required (or if you need to provide a longer answer to a question), include all of them in a single, separate Word and/or Excel document, and upload before submitting this form.
+
+  You can save and return to this form if you bookmark the url.  However, uploads cannot be saved, so wait until you are ready to submit before uploading them.
 
 continue button field: intro_yesno
 
 ---
 mandatory: true
 question: |
-  What’s your name and email address?  And what’s your role in the Company? 
+  What is your name and email address?  And what’s your role in the Company? 
 subquestion: |
   The Company refers to the Company raising funds. 
   
@@ -99,9 +102,11 @@ fields:
   - E-mail address:  client.email
     datatype: email
   - Role in Company: client_role
+  - note: |
+      Your role would be your title such as President, Vice President
 ---
 question: |
-   What’s the name of your Company?
+   What is the name of your Company?
 subquestion: |
   This should be the name of the company that will be raising funds. If you haven't formed your company yet let us know the name you are considering. 
 fields:
@@ -112,7 +117,7 @@ question: |
 yesno: inc_yesno
 ---
 question: |
-  What's the legal address for ${issuer.name}?
+  What is the legal address for ${issuer.name}?
 fields:
   - Address: issuer.address.address
   - Unit: issuer.address.unit
@@ -214,9 +219,9 @@ fields:
 ---
 question: |
    % if inc_yesno == True:
-     Is ${issuer.name}:
+     Is ${issuer.name}
    % else:
-     will ${issuer.name} be:
+     Will ${issuer.name} be
    % endif:
      managed by:
 field: management_structure
@@ -340,16 +345,16 @@ fields:
 ---
 question: |
   We need to explore
-  ${ officer[i].possessive('business experience.') }?
+  ${ officer[i].possessive('business experience.') }
 subquestion:
-    1) A short one-sentence description of their business experience, over the last 3 years; 2) Their principal occupation over the last 3 years and 3) if they have been employed by anyone else, the name and business name of their employer.
+    We need a short one-sentence description of ${ officer[i].possessive('business experience.') } business experience and principal occupation over the last 3 years. Also indicate if they have been employed by anyone else
 fields:
   - Describe business experience: officer[i].experience
     input type: area
   - Occupation last 3 years: officer[i].occupation
     input type: area
   - Name and business name of employers: officer[i].employers
-    input type: area
+    input: area
 ---
 question: |
   Are there any other officers?
